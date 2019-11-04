@@ -77,8 +77,8 @@ reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = 
 
 ```{r}
 
- # data <- read_excel("data_Exp1.xlsx", sheet = 1)
-data <- read_excel("GroupA_6-1-2015/data/data_Exp1.xlsx")
+ data <- read_excel("data_Exp1.xlsx")
+View(data)
 # data = read.spss("data_Exp1.xlsx", sheet = "summary")
 
 ```
