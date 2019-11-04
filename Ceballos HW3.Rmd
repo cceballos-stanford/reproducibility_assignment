@@ -48,8 +48,6 @@ Make sure to use the original article for additional context and information abo
 
 ------
 
-[PILOT/COPILOT DO NOT CHANGE THE CODE IN THE CHUNK BELOW]  
-
 ```{r global_options, include=FALSE}
 # sets up some formatting options for the R Markdown document
 knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
@@ -77,15 +75,28 @@ reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = 
 
 ```{r}
 
- # data <- read_excel("data_Exp1.xlsx", sheet = 1)
-data <- read_excel("GroupA_6-1-2015/data/data_Exp1.xlsx")
-# data = read.spss("data_Exp1.xlsx", sheet = "summary")
+data <- read_excel("GroupA_6-1-2015/data/data_Exp1.xlsx", sheet = "summary")
+head(data)
+
 
 ```
 
 # Step 3: Tidy data
 
 ```{r}
+
+# Right now, the data is arranged in wide format. I want to make it longer, so I will use pivot_longer
+# I want to create the following columns: grasping, ***
+
+# tidy_data <- gather(data, key = "closed loop",  value = value)
+
+colnames(data)
+
+pivot_longer(data, cols = c(1:20), names_to = "name", values_to = "closed")
+
+# View(tidy_data)
+
+
 ```
 
 # Step 4: Run analysis
@@ -93,16 +104,29 @@ data <- read_excel("GroupA_6-1-2015/data/data_Exp1.xlsx")
 ## Pre-processing
 
 ```{r}
+
+# In the pre-processing, I should eliminate the data from the "mean," since I will not need it.
+
+
 ```
 
 ## Descriptive statistics
 
 ```{r}
+
+# Carry out ANOVAs?? Not sure how to do that or what that means
+
+
+
 ```
 
 ## Inferential statistics
 
 ```{r}
+
+
+
+
 ```
 
 # Step 5: Conclusion
