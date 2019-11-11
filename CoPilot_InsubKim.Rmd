@@ -1,0 +1,332 @@
+---
+title: "Reproducibility Report by Cristina Ceballos"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+# Report Details
+
+
+```{r}
+articleID <- "6-1-2015" # insert the article ID code here e.g., "10-3-2015"
+reportType <- "copilot" # specify whether this is the 'pilot' report or 'copilot' report
+pilotNames <- "Cristina Ceballos" # insert the pilot's name here e.g., "Tom Hardwicke".
+copilotNames <- "Insub Kim" # # insert the co-pilot's name here e.g., "Michael Frank".
+pilotTTC <- 520 # insert the pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+copilotTTC <- 180 # insert the co-pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+pilotStartDate <- "11/3/2019" # insert the piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- "11/10/2019" # insert the co-piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- "11/10/2019"  # insert the date of final report completion in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+------
+
+#### Methods summary: 
+
+The authors aim test a hypothesis: that object crowding does not affect grasping action to the same extent that crowding affects visual perception. When a person is grasping, rather than just perceiving, he can escape the distortional effects of object crowding, to some degree. 
+
+To test this hypothesis, the authors ran 3 studies with groups of 10-12 participants. In the grasping task, participants were required to reach out and pick up the target disk between their thumb and index fingers. On the perceptual tasks, participants were required to estimate the size of the disk using their fingers, but *not* to reach out and grasp it. The authors varied the size and placement of the target disk, and sometimes also varied the crowding condition. 
+
+------
+
+#### Target outcomes: 
+
+For this article you should focus on the findings reported in section "Effects of crowding on perception and action" for Experiment 1.
+
+Specifically, you should attempt to reproduce all descriptive and inferential analyses reported in the text below and associated tables/figures:
+
+> Effects of crowding on perception and action
+
+> Experiment 1 was designed to explore the effects of crowding on perception and action, with a particular focus on whether participants could scale their grip aperture to the size of the target even when they could not consciously identify the size of the target. We carried out a four-way repeated measures ANOVA on the manual estimates and PGAs with task (estimation vs. grasping), crowding condition (uncrowded vs. crowded), viewing condition (closed- vs. open-loop), and target size (3.0 vs. 3.75 cm) as main factors. The significant interaction between task and crowding condition, F(1, 9) = 6.818, p = .028, suggested that crowding had different effects on performance of the grasping and manual estimation tasks. Not surprisingly, when the target was presented in isolation, participants were able to manually estimate the sizes of the two targets—and this was true for both closed-loop trials, t(9) = 7.23, p < .001, and open-loop trials, t(9) = 9.19, p < .001. Similarly, participants showed excellent grip scaling for targets presented in isolation on both closed-loop trials, t(9) = 4.29, p = .002, and openloop trials, t(9) = 4.79, p = .001 (Fig. 3). Things were quite different, however, when the target disks were surrounded by flankers. In this condition, participants could no longer discriminate between the two disk sizes using a manual estimate closed-loop trials: t(9) = 1.02, p = .334; open-loop trials: t(9) = 1.78, p = .108?presumably because the size of the target was perceptually invisible. (Note that we use the term invisible to refer to the fact that participants could not identify the size of the target, even though they were aware of its presence and position.) In contrast, when participants were asked to grasp the same targets, their PGAs were still scaled to target size?closed-loop trials: t(9) = 4.21, p = .002; open-loop trials: t(9) = 3.392, p = .008 (Fig. 3).
+
+**Note**
+Make sure to use the original article for additional context and information about any necessary pre-processing steps. Also check for additional supplementary materials that may provide supporting documentation for analysis procedures.
+
+
+------
+
+```{r global_options, include=FALSE}
+# sets up some formatting options for the R Markdown document
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages and prepare report object
+
+```{r}
+# load packages
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(ReproReports) # custom reporting functions
+library(foreign)
+```
+
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+# Step 2: Load data
+
+```{r}
+data <- read_excel("data/data_Exp1.xlsx", sheet = "summary")
+head(data)
+
+```
+
+# Step 3: Tidy data
+
+```{r}
+
+# Right now, the data is arranged in wide format. I want to make it longer, so I will use pivot_longer to make it tidy.
+
+# But first, I have to manually modify the columns and assign each column a column name. To do so, I created a new Excel file called "data_Exp1_modified". In this Excel file, I manually renamed each column. For example, the first column was called "closedloop_grasping_uncrowded_3cm". The other columns followed the same naming rules.
+
+# In the Excel file, I also deleted empty columns. I also removed the two top columns.
+
+# I use the read_excel function to read the data.
+
+data_modified <- read_excel("data/data_Exp1_modified.xlsx", sheet = "summary")
+
+
+# Now I use the functions "separate" and "pivot_longer" to make my data tidy.
+
+pivoted_data <- pivot_longer(data_modified, closedloop_grasping_uncrowded_3cm:openloop_estimation_crowded_3.75cm, names_to = "column", values_to="estimate")
+
+tidy_data <- separate(pivoted_data, column, into = c("open_closed","grasping_estimating","crowded_uncrowded","cm"), sep = "_")
+
+colnames(tidy_data)
+
+
+
+# Now my data is tidy!
+
+
+```
+
+# Step 4: Run analysis
+
+## Pre-processing
+
+```{r}
+
+# To run the ANOVA, I should get rid of the "means" information in the tidy_data. To do that, I simply selected the first 160 rows of the dataset, and ommitted the bottom rows 161-176, since those are the rows that have the means.
+
+ANOVA_tidy_data <- tidy_data[1:160,]  
+# "ANOVA_tidy_data is the dataset I will use for the ANOVA analysis. It excludes the "means" rows.
+
+
+# Next, I created a dataset that has ONLY the "means" information, since that is the information used in Figure 3.
+
+Fig3_tidy_data <- tidy_data[161:176,] 
+# "Fig3_tidy_data is the dataset I will use for try to recreate Fig3 from the paper. It has only the "means" rows.
+
+
+```
+
+## Descriptive statistics
+
+
+I tried running a four-way repeated measures ANOVA, as the authors did. However, before running the four-way repeated meaures ANOVA, I did a bit of online research and found that most authors strongly recommend running only a one- or two-way ANOVA, not a four-way ANOVA. Four factors is a LOT of factors and sets up unnecessary interactions. It would be cleaner to do the analysis with only three or two factors, rather than four. 
+
+With the ANOVA, I was attempting to replicate the results the authors reported in the section titled "Effects of crowding on perception and action." 
+
+The exact results that I wanted to replicate where the following lines, from pp63 of the original report:
+
+"The significant interaction between task and crowding condition, F(1, 9) = 6.818, p = .028, suggested that crowding had different effects on performance of the grasping and manual estimation tasks."
+
+My ANOVA did not replicate the exact same results as the authors. The authors had written: ""The significant interaction between task and crowding condition, F(1, 9) = 6.818, p = .028, suggested that crowding had different effects on performance of the grasping and manual estimation tasks."
+
+My ANOVA did not find a significant interaction between task and crowding condition. My ANOVA found F = 2.662 and p = 0.105, which is not significant. I am not sure why my ANOVA was different. This is also my first time ever using an ANOVA, so perhaps I set it up in the wrong way.
+
+copilot comment: I think the pilot missed the fact that it is a repeated measures anova. So we need to include error terms in the "aov" function. If repeated measure if performed, the result of original paper is replicated. Also added results from post-hoc tests
+
+```{r}
+
+# I used the aov function to
+
+#ANOVA_results <- aov(estimate ~ grasping_estimating * crowded_uncrowded * open_closed * cm, ANOVA_tidy_data)
+#summary(ANOVA_results)
+
+
+# copilot: repeated measure aov function used  // testing - significant interaction between task and crowding condition
+ANOVA_results2 <- aov(estimate ~ (factor(grasping_estimating)*factor(crowded_uncrowded)*factor(open_closed)*factor(cm)) + Error(factor(sub)/(factor(grasping_estimating)*factor(crowded_uncrowded)*factor(open_closed)*factor(cm))), data=ANOVA_tidy_data)
+summary(ANOVA_results2[7])
+
+```
+
+Also performed analysis for post-hoc t-tests
+```{r}
+#post hoc t-tests
+ 
+# no flacker
+
+#estimate~ closed-loop t(9) = 7.23, p < .001 
+t1=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="uncrowded" & open_closed=="closedloop" & grasping_estimating=='estimation'))
+
+#estimate~ open-loop t(9) = 9.19, p < .001 
+t2=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="uncrowded" & open_closed=="openloop" & grasping_estimating=='estimation'))
+
+
+#grip~ closed-loop t(9) = 4.29, p = .002 
+t3=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="uncrowded" & open_closed=="closedloop" & grasping_estimating=='grasping'))
+
+#grip~ open-loop t(9) = 4.79, p = .001 
+t4=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="uncrowded" & open_closed=="openloop" & grasping_estimating=='grasping'))
+
+# flankers
+#estimate~ closed-loop t(9) = 1.02, p = .334
+
+t5=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="crowded" & open_closed=="closedloop" & grasping_estimating=='estimation'))
+
+
+#estimate~ open-loop t(9) = 1.78, p = .108
+t6=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="crowded" & open_closed=="openloop" & grasping_estimating=='estimation'))
+
+
+#grip~ closed-loop t(9) = 4.21, p = .002 
+
+t7=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="crowded" & open_closed=="closedloop" & grasping_estimating=='grasping'))
+
+#grip~ open-loop t(9) = 3.392, p = .008 
+t8=t.test(estimate ~ factor(cm),paired=TRUE, data = filter(ANOVA_tidy_data, crowded_uncrowded=="crowded" & open_closed=="openloop" & grasping_estimating=='grasping'))
+
+
+```
+
+
+ Things were quite different, however, when the target disks were surrounded by flankers. In this condition, participants could no longer discriminate between the two disk sizes using a manual estimate closed-loop trials: t(9) = 1.02, p = .334; open-loop trials: t(9) = 1.78, p = .108?presumably because the size of the target was perceptually invisible. (Note that we use the term invisible to refer to the fact that participants could not identify the size of the target, even though they were aware of its presence and position.) In contrast, when participants were asked to grasp the same targets, their PGAs were still scaled to target size?closed-loop trials: t(9) = 4.21, p = .002; open-loop trials: t(9) = 3.392, p = .008 (Fig. 3).
+
+
+## Inferential statistics
+
+Here, I tried to recreate the plots in Figure 3. The plots used the row labeled "means," so I had to be careful to go back and select that row, since I had previously filtered it out in order to run the ANOVA.
+
+```{r}
+
+colnames(Fig3_tidy_data)
+ 
+# plot("cm", Fig3_tidy_data[10:16], Fig3_tidy_data,  "l")
+# commented out because I could not get the code to work
+
+```
+
+I was unable to recreate the plots. However, I think this is due to my lack of coding experience. I have never made plots similar to Fig 3 so I had no idea how to do it.
+
+
+## ReproCheck Functions
+
+Here, I will run the "reproCheck()" function as described in the instructions for this assignment.
+
+```{r}
+
+# Reprocheck for the four-way ANOVA F value:
+#reproCheck("6.818", "2.662", valueType = "F") 
+
+# Reprocheck for the four-way ANOVA p value:
+#reproCheck("0.28", "0.105", valueType = "p") 
+
+
+# original paper result replicated F(1, 9) = 6.818, p = .028
+reportObject <- reproCheck(reportedValue = '6.818', obtainedValue = 6.818, valueType = 'other')
+reportObject <- reproCheck(reportedValue = '.028', obtainedValue = .0282, valueType = 'p')
+
+# Post hoc t-tests
+
+
+# no flacker
+#estimate~ closed-loop t(9) = 7.23, p < .001 
+
+reportObject <- reproCheck(reportedValue = '7.23', obtainedValue = as.numeric(t1[1]), valueType = 't')
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = as.numeric(t1[3]), valueType = 'p', eyeballCheck = TRUE)
+
+#estimate~ open-loop t(9) = 9.19, p < .001 
+
+reportObject <- reproCheck(reportedValue = '9.19', obtainedValue = as.numeric(t2[1]), valueType = 't') #minor rounding error found
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = as.numeric(t2[3]), valueType = 'p', eyeballCheck = TRUE)
+
+
+#grip~ closed-loop t(9) = 4.29, p = .002 
+
+reportObject <- reproCheck(reportedValue = '4.29', obtainedValue = as.numeric(t3[1]), valueType = 't')  
+reportObject <- reproCheck(reportedValue = '.002', obtainedValue = as.numeric(t3[3]), valueType = 'p') 
+
+#grip~ open-loop t(9) = 4.79, p = .001 
+
+reportObject <- reproCheck(reportedValue = '4.79', obtainedValue = as.numeric(t4[1]), valueType = 't') #minor rounding error found
+reportObject <- reproCheck(reportedValue = '.001', obtainedValue = as.numeric(t4[3]), valueType = 'p')  
+
+
+
+
+
+# flankers
+#estimate~ closed-loop t(9) = 1.02, p = .334
+reportObject <- reproCheck(reportedValue = '1.02', obtainedValue = as.numeric(t5[1]), valueType = 't')
+reportObject <- reproCheck(reportedValue = '.334', obtainedValue = as.numeric(t5[3]), valueType = 'p')  
+
+
+#estimate~ open-loop t(9) = 1.78, p = .108
+reportObject <- reproCheck(reportedValue = '1.78', obtainedValue = as.numeric(t6[1]), valueType = 't')
+reportObject <- reproCheck(reportedValue = '.108', obtainedValue = as.numeric(t6[3]), valueType = 'p')  
+
+
+#grip~ closed-loop t(9) = 4.21, p = .002 
+reportObject <- reproCheck(reportedValue = '4.21', obtainedValue = as.numeric(t7[1]), valueType = 't')
+reportObject <- reproCheck(reportedValue = '.002', obtainedValue = as.numeric(t7[3]), valueType = 'p')  
+
+
+#grip~ open-loop t(9) = 3.392, p = .008 
+reportObject <- reproCheck(reportedValue = '3.392', obtainedValue = as.numeric(t8[1]), valueType = 't')
+reportObject <- reproCheck(reportedValue = '.008', obtainedValue = as.numeric(t8[3]), valueType = 'p')  
+
+
+```
+
+# Step 5: Conclusion
+
+<!-- This reproducibility check was a failure. However, I think the likely reason for the  failure is my lack of familiarity with ANOVAs. I have no idea if I set up the ANOVA correctly, and I do not know if I read the results correctly. I spent a LOT of time figuring out how to download the data and then tidy the data, so I spent a LOT of time on logistical details, and then did not have that much time to actually understand the analyses and the results.  -->
+
+This reproducibility check was a success with a few minor rounding errors.
+
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add variables to report 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome %in% c("MAJOR_ERROR", "DECISION_ERROR"))){
+  finalOutcome <- "Failure"
+}else{
+  finalOutcome <- "Success"
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, finalOutcome)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "copilot"){
+  write_csv(reportObject, "copilotReportDetailed.csv")
+  write_csv(reportExtras, "copilotReportExtras.csv")
+}
+```
+
+# Session information
+
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
