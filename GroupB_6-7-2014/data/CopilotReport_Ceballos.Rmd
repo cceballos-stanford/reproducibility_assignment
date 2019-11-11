@@ -1,0 +1,247 @@
+---
+title: "Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+#http://rpubs.com/insubkim/546998
+
+# Report Details
+
+
+```{r}
+articleID <- "6-7-2014"  # insert the article ID code here e.g., "10-3-2015"
+reportType <- 'pilot' # specify whether this is the 'pilot' report or 'copilot' report
+pilotNames <- "Insub Kim" # insert the pilot's name here e.g., "Tom Hardwicke".
+copilotNames <-"Cristina Ceballos"  # # insert the co-pilot's name here e.g., "Michael Frank".
+pilotTTC <- 200 # insert the pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+copilotTTC <- 60 # insert the co-pilot's estimated time to complete (in minutes, it is fine to approximate) e.g., 120
+pilotStartDate <- "11/05/2017" # insert the piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+copilotStartDate <- "11/10/2019" # insert the co-piloting start date in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+completionDate <- "11/10/2019" # insert the date of final report completion in US format e.g., as.Date("01/25/18", format = "%m/%d/%y")
+```
+
+------
+
+#### Methods summary: 
+
+2 X 4 ANOVA to test effect of orientation and station.
+Post-hoc tests of One way ANOVA to test the effect of orientation
+
+------
+
+#### Target outcomes: 
+
+For this article you should focus on the findings reported in the results section of Experiment 1.
+
+Specifically, you should attempt to reproduce all descriptive and inferential analyses reported in the text below and associated tables/figures:
+
+> Results
+
+> We carried out a 2 (orientation: toward, away from) × 4 (station: Spadina, St. George, Bloor-Yonge, Sherbourne) analysis of variance (ANOVA) on closeness ratings, which revealed no main effect of orientation, F < 1, and a main effect of station, F(3, 194) = 24.10, p < .001, ηp2 = .27. This main effect was qualified by the predicted interaction between orientation and station, F(3, 194) = 16.28, p < .001, ηp2 = .20. We decomposed this interaction by the subjective-distance ratings between participants traveling east and west for each of the four subway stations. Westbound participants rated the stations to the west of Bay Street as closer than did eastbound participants; this effect was obtained for both the station one stop to the west (St. George, p < .001, ηp2 = .28) and the station two stops to the west (Spadina, p = .001, ηp2 = .20). The opposite pattern held true for stations to the east of Bay Street. Eastbound participants rated the stations to the east of Bay Street as closer than did westbound participants; this effect was obtained for both the station one stop to the east (Bloor-Yonge, p = .053, ηp2 = .08) and the station two stops to the east (Sherbourne, p < .001, ηp2 = .24). Figure 1 summarizes these results. comparing
+
+------
+
+
+```{r global_options, include=FALSE}
+# sets up some formatting options for the R Markdown document
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+# Step 1: Load packages and prepare report object
+
+
+```{r}
+# load packages
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(ReproReports) # custom reporting functions
+library(lsr) # For eta-Square estimate need to install this if you don't have this
+
+```
+
+
+```{r}
+# Prepare report object. This will be updated automatically by the reproCheck function each time values are compared
+reportObject <- data.frame(dummyRow = TRUE, reportedValue = NA, obtainedValue = NA, valueType = NA, percentageError = NA, comparisonOutcome = NA, eyeballCheck = NA)
+```
+
+
+
+# Step 2: Load data
+
+```{r}
+# rawData <- read_excel("data/S1_Subway.xlsx")
+# head(rawData)
+
+# Note: as the copilot, I had to change the command slightly since my data was saved in a different place. I commented out Insub's original commands. Mine are below.
+
+rawData <- read_excel("S1_Subway.xlsx")
+# head(rawData)
+```
+
+
+
+# Step 3: Tidy data
+
+```{r}
+
+```
+
+
+# Step 4: Run analysis
+
+## Pre-processing
+
+```{r}
+
+
+```
+
+## Descriptive statistics
+
+```{r}
+#sort it to each Condition
+EachCond<- rawData %>%
+  group_by(STN_NAME,DIRECTION) %>%
+  summarize(N = length(DISTANCE),meanDistance=mean(DISTANCE))  
+
+EachCond
+```
+
+
+
+
+```{r}
+#plot 
+myplot <- ggplot(EachCond, aes(STN_NAME, meanDistance, group=DIRECTION)) +
+  geom_line(aes(linetype=DIRECTION))+
+  geom_point(aes(shape=DIRECTION))
+myplot
+```
+
+## Inferential statistics
+
+```{r}
+# Run two-way ANOVA 
+res.aov2 <-aov(DISTANCE ~ DIRECTION*STN_NAME, data=rawData) 
+summary(res.aov2)
+etaSquared(res.aov2)
+
+
+```
+
+```{r}
+# Check if two-way ANOVA results  match with the original paper.
+
+p_station <- 0.0001 #main effect of station
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = p_station, valueType = 'p',eyeballCheck = TRUE)
+
+eta_station <- 0.265284110 # effect size of statoin
+reportObject <- reproCheck(reportedValue = '.28', obtainedValue = eta_station, valueType = 'other')
+
+p_interaction <- 0.0001 #Interaction effect between orientation and station
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = p_interaction, valueType = 'p',eyeballCheck = TRUE)
+
+eta_interaction <- 0.201151614 # effect size of statoin
+reportObject <- reproCheck(reportedValue = '.20', obtainedValue = eta_interaction, valueType = 'other')
+
+```
+
+
+```{r}
+
+# # ANOVA for STG
+STG <- aov(DISTANCE ~ DIRECTION, data=filter(rawData, STN_NAME=="STG"))
+summary (STG)
+etaSquared(STG)
+
+# # ANOVA for SPAD
+SPAD_data=filter(rawData, STN_NAME=="SPAD")
+SPAD <- aov(DISTANCE ~ DIRECTION, data=SPAD_data)
+summary (SPAD)
+etaSquared(SPAD)
+
+# # ANOVA for B-Y
+BY <- aov(DISTANCE ~ DIRECTION, data=filter(rawData, STN_NAME=="B-Y"))
+summary (BY)
+etaSquared(BY)
+
+# # ANOVA for SHER
+SHER <- aov(DISTANCE ~ DIRECTION, data=filter(rawData, STN_NAME=="SHER"))
+summary (SHER)
+etaSquared(SHER)
+
+```
+```{r}
+
+# Check if post-hoc one way ANOVA results match with the original paper.
+
+p_STG <- 0.0001 
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = p_STG, valueType = 'p',eyeballCheck = TRUE)
+eta_STG <- 0.2772092
+reportObject <- reproCheck(reportedValue = '.28', obtainedValue = eta_STG, valueType = 'other')
+
+p_SPAD <-0.00113
+reportObject <- reproCheck(reportedValue = '.001', obtainedValue = p_SPAD, valueType = 'p')
+eta_SPAD <- 0.1962763
+reportObject <- reproCheck(reportedValue = '.2', obtainedValue = eta_SPAD, valueType = 'other')
+
+P_BY <-0.0528
+reportObject <- reproCheck(reportedValue = '.053', obtainedValue = P_BY, valueType = 'p')
+eta_BY <- 0.0774451
+reportObject <- reproCheck(reportedValue = '.08', obtainedValue = eta_BY, valueType = 'other')
+
+p_SHER <-0.000305
+reportObject <- reproCheck(reportedValue = '<.001', obtainedValue = p_SHER, valueType = 'p',eyeballCheck = TRUE)
+eta_SHER <- 0.2356667
+reportObject <- reproCheck(reportedValue = '.24', obtainedValue = eta_SHER, valueType = 'other')
+
+```
+
+# Step 5: Conclusion
+
+Overall the replication was very successful (exact F values, p Value, and Effect sizes). Only a slight value differences were found in the two-way ANOVA analysis and I believe this is due to usage of different types of ANOVA statistics. 
+
+Copilot Note: Insub's code was very clean and easy to run! I had no problems with it. 
+
+
+```{r}
+reportObject <- reportObject %>%
+  filter(dummyRow == FALSE) %>% # remove the dummy row
+  select(-dummyRow) %>% # remove dummy row designation
+  mutate(articleID = articleID) %>% # add variables to report 
+  select(articleID, everything()) # make articleID first column
+
+# decide on final outcome
+if(any(reportObject$comparisonOutcome %in% c("MAJOR_ERROR", "DECISION_ERROR"))){
+  finalOutcome <- "Failure"
+}else{
+  finalOutcome <- "Success"
+}
+
+# collate report extra details
+reportExtras <- data.frame(articleID, pilotNames, copilotNames, pilotTTC, copilotTTC, pilotStartDate, copilotStartDate, completionDate, finalOutcome)
+
+# save report objects
+if(reportType == "pilot"){
+  write_csv(reportObject, "pilotReportDetailed.csv")
+  write_csv(reportExtras, "pilotReportExtras.csv")
+}
+
+if(reportType == "copilot"){
+  write_csv(reportObject, "copilotReportDetailed.csv")
+  write_csv(reportExtras, "copilotReportExtras.csv")
+}
+```
+
+# Session information
+
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```

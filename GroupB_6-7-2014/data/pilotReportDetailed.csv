@@ -1,0 +1,13 @@
+articleID,reportedValue,obtainedValue,valueType,percentageError,comparisonOutcome,eyeballCheck
+6-7-2014,<.001,1e-4,p,NA,MATCH,TRUE
+6-7-2014,0.28,0.27,other,3.571428571428574,MINOR_ERROR,NA
+6-7-2014,<.001,1e-4,p,NA,MATCH,TRUE
+6-7-2014,0.2,0.2,other,0,MATCH,NA
+6-7-2014,<.001,1e-4,p,NA,MATCH,TRUE
+6-7-2014,0.28,0.28,other,0,MATCH,NA
+6-7-2014,0.001,0.001,p,0,MATCH,NA
+6-7-2014,0.2,0.2,other,0,MATCH,NA
+6-7-2014,0.053,0.053,p,0,MATCH,NA
+6-7-2014,0.08,0.08,other,0,MATCH,NA
+6-7-2014,<.001,3.05e-4,p,NA,MATCH,TRUE
+6-7-2014,0.24,0.24,other,0,MATCH,NA
