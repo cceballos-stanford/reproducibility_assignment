@@ -8,7 +8,7 @@ output:
 
 https://github.com/cceballos-stanford/reproducibility_assignment
 
-Note: my pilot report failed to reproduce the results, and I hypothesized that the failure was due to my lack of experience with ANOVAs. It turns out that I was right, since Insub Kim, my copilot, was able to reproduce the results since he knew how to use ANOVAs properly. Insub's copilot report is available at the above github link, and his is MUCH cleaner and better than my sad, sad pilot report.
+Note: my pilot report failed to reproduce the results, and I hypothesized that the failure was due to my lack of experience with ANOVAs. It turns out that I was right, since Insub Kim, my copilot, was able to reproduce the results since he knew how to use ANOVAs properly. Insub's copilot report is available at the above github link, and his is MUCH cleaner and better than my sad, sad attempt at a pilot report.
 
 # Report Details
 
